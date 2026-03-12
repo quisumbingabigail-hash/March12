@@ -14,7 +14,7 @@ body{
   overflow:hidden;
 }
 
-/* rain effect */
+/* rain */
 
 .rain{
   position:fixed;
@@ -53,13 +53,11 @@ body{
 
 h1{
   color:#58a6ff;
-  margin-bottom:8px;
 }
 
 .machine{
   color:#8b949e;
   margin-bottom:20px;
-  font-size:14px;
 }
 
 .status{
@@ -71,15 +69,43 @@ h1{
   border:1px solid #30363d;
   border-radius:8px;
   padding:16px;
-  margin-top:22px;
+  margin-top:20px;
   color:#79c0ff;
   font-size:14px;
+  word-break:break-all;
 }
 
-.footer{
+button{
+  margin-top:18px;
+  padding:10px 18px;
+  background:#238636;
+  border:none;
+  border-radius:6px;
+  color:white;
+  font-family:inherit;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#2ea043;
+}
+
+.result{
   margin-top:20px;
-  font-size:12px;
-  color:#6e7681;
+  color:#c9d1d9;
+  font-size:16px;
+  min-height:20px;
+}
+
+.cursor{
+  display:inline-block;
+  width:10px;
+  background:#c9d1d9;
+  animation:blink 1s infinite;
+}
+
+@keyframes blink{
+  50%{opacity:0;}
 }
 
 </style>
@@ -105,16 +131,69 @@ for(let i=0;i<65;i++){
 <h1>Engine Diagnostics</h1>
 <p class="machine">Machine: A.B.B.Y.</p>
 
-<p class="status">Running system check...</p>
-<p class="status">Telemetry received.</p>
+<p class="status">Signal received.</p>
 
-<div class="code">
+<div class="code" id="payload">
 U2xlZXAgRGVwcml2YXRpb24gYnkgQ2hhbmNlIFBlw7Fh
 </div>
 
-<p class="footer">diagnostic.log updated</p>
+<button onclick="decodeMessage()">Decode Signal</button>
+
+<div class="result" id="output"></div>
 
 </div>
+
+<script>
+
+function decodeMessage(){
+
+  const encoded=document.getElementById("payload").textContent.trim();
+
+  const decoded=decodeURIComponent(
+    Array.prototype.map.call(atob(encoded),c=>
+      '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)
+    ).join('')
+  );
+
+  trackClick();
+
+  typeText(decoded);
+}
+
+
+function typeText(text){
+
+  const output=document.getElementById("output");
+  output.innerHTML="";
+
+  let i=0;
+
+  const cursor=document.createElement("span");
+  cursor.className="cursor";
+
+  function type(){
+    if(i<text.length){
+      output.textContent+=text.charAt(i);
+      i++;
+      setTimeout(type,70);
+    }else{
+      output.appendChild(cursor);
+    }
+  }
+
+  type();
+}
+
+
+/* click tracker */
+
+function trackClick(){
+
+  fetch("https://api.countapi.xyz/hit/abby-engine-diagnostics/decode");
+
+}
+
+</script>
 
 </body>
 </html>
